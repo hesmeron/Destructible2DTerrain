@@ -1,0 +1,13 @@
+#pragma kernel CSMain
+
+Texture2D Texture;
+RWBuffer<bool> Result;
+float AlphaThreshold;
+int Width;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int index = (id.y * Width) + id.x;
+    Result[index] = Texture[id.xy].a > 0.1f;
+}
