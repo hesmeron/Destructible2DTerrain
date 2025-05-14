@@ -22,7 +22,7 @@ class DrawPass : ScriptableRenderPass
     
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
-        int shaderPass = data.material.FindPass("ForwardLit");
+        int shaderPass = data.material.FindPass("Unlit");
         context.cmd.DrawMesh(data.mesh, Matrix4x4.identity, data.material, 0, shaderPass);
 
     }
@@ -36,6 +36,9 @@ class DrawPass : ScriptableRenderPass
             passData.material = _material;
             passData.mesh = _mesh;
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            var lightData = frameData.Get<UniversalLightData>();
+            var test = frameData.Get<UniversalRenderingData>();
+            
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture);
             builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));

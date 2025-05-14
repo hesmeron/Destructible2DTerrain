@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ProceduralDrawFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  material: {fileID: 2100000, guid: 5318a7a34e6bcad4dbf77c64e449656f, type: 2}
+  material: {fileID: 2100000, guid: 2850a774323b9c146b828d649de3fa2b, type: 2}
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &11400000
 MonoBehaviour:
