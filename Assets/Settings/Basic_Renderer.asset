@@ -1,20 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7766652902146704544
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70773c70ce425164abe23e0d857c5020, type: 3}
-  m_Name: ProceduralDrawFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  material: {fileID: 2100000, guid: 2850a774323b9c146b828d649de3fa2b, type: 2}
-  mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40,8 +25,8 @@ MonoBehaviour:
     probeSamplingDebugTexture: {fileID: 0}
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
-  - {fileID: -7766652902146704544}
-  m_RendererFeatureMap: 60fbc9c1554e3794
+  - {fileID: 7505179661164534051}
+  m_RendererFeatureMap: 23d9323f23c12768
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -67,3 +52,18 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &7505179661164534051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b76f19f4d95e984ea3cfbd7ac3d40bb, type: 3}
+  m_Name: InstancedDrawFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  material: {fileID: 2100000, guid: 2850a774323b9c146b828d649de3fa2b, type: 2}
+  mesh: {fileID: -2432090755550338912, guid: 3a46c3db616b2874faff8e63543f3d66, type: 3}
