@@ -24,7 +24,6 @@ class InstancedDrawPass : ScriptableRenderPass
     {
         int shaderPass = data.material.FindPass("Unlit");
         context.cmd.DrawMesh(data.mesh, Matrix4x4.identity, data.material, 0, shaderPass);
-
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -36,8 +35,6 @@ class InstancedDrawPass : ScriptableRenderPass
             passData.material = _material;
             passData.mesh = _mesh;
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            var lightData = frameData.Get<UniversalLightData>();
-            var test = frameData.Get<UniversalRenderingData>();
             
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture);
