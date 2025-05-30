@@ -23,7 +23,15 @@ class InstancedDrawPass : ScriptableRenderPass
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
         int shaderPass = data.material.FindPass("Unlit");
-        context.cmd.DrawMesh(data.mesh, Matrix4x4.identity, data.material, 0, shaderPass);
+        for (int x = 0; x < 100; x++)
+        {
+            for (int z = 0; z < 100; z++)
+            {
+                Matrix4x4 matrix = Matrix4x4.TRS(new Vector3(x*1.2f, 0, z*1.5f), Quaternion.identity, Vector3.one);
+                context.cmd.DrawMesh(data.mesh, matrix, data.material, 0, shaderPass);
+            }
+        }
+
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
