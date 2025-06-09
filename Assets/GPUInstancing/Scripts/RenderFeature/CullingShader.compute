@@ -1,14 +1,15 @@
-// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+//All matrices to be culled
+StructuredBuffer<float4x4> IN_Matrices;
+//Matrices of objects within frustum to get drawn
+AppendStructuredBuffer<float4x4> OUT_CulledMatrices;
 
-[numthreads(8,8,1)]
+//We will only use id.x so reduce y in numthreas to 1
+[numthreads(8,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
-
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    //for now we are simply effectively copying on e buffer to another
+    float4x4 transformationMatrix = IN_Matrices[id.x];
+    OUT_CulledMatrices.Append(transformationMatrix);
 }

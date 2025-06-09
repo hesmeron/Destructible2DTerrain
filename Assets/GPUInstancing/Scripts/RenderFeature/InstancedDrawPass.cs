@@ -16,24 +16,15 @@ class InstancedDrawPass : ScriptableRenderPass
 
     private class PassData
     {
+        public BufferHandle matrixBuffer;
         public Material material;
         public Mesh mesh;
     }
     
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
-        int shaderPass = data.material.FindPass("Unlit");
-        Matrix4x4[] matrices = new Matrix4x4[100 * 100];
-        
-        for (int x = 0; x < 100; x++)
-        {
-            for (int z = 0; z < 100; z++)
-            {
-                Matrix4x4 matrix = Matrix4x4.TRS(new Vector3(x*1.2f, 0, z*1.5f), Quaternion.identity, Vector3.one);
-                matrices[x * 100 + z] = matrix;
-            }
-        }
-        context.cmd.DrawMeshInstanced(data.mesh, 0, data.material, shaderPass, matrices);
+        int shaderPass = data.material.FindPass("Unlit"); 
+        context.cmd.DrawMeshInstancedIndirect(data.mesh, 0, data.material, shaderPass, data.matrixBuffer);
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -42,10 +33,13 @@ class InstancedDrawPass : ScriptableRenderPass
             
         using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
         {
+            CullingFrameData cullingFrameData = frameData.Get<CullingFrameData>();
+            passData.matrixBuffer = cullingFrameData.CulledMatricesBuffer;
             passData.material = _material;
             passData.mesh = _mesh;
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            
+
+            builder.UseBuffer(passData.matrixBuffer);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture);
             builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
