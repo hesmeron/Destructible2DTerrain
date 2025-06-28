@@ -16,7 +16,7 @@ class InstancedDrawPass : ScriptableRenderPass
 
     private class PassData
     {
-        public BufferHandle matrixBuffer;
+        public CullingFrameData cullingFrameData;
         public Material material;
         public Mesh mesh;
     }
@@ -24,7 +24,13 @@ class InstancedDrawPass : ScriptableRenderPass
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
         int shaderPass = data.material.FindPass("Unlit"); 
-        context.cmd.DrawMeshInstancedIndirect(data.mesh, 0, data.material, shaderPass, data.matrixBuffer);
+
+        MaterialPropertyBlock block =  context.renderGraphPool.GetTempMaterialPropertyBlock();
+        context.cmd.DrawMeshInstancedProcedural(data.mesh, 
+                                                0, data.material,
+                                                shaderPass,
+                                                data.cullingFrameData.InstanceCount,
+                                                block );
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -34,12 +40,11 @@ class InstancedDrawPass : ScriptableRenderPass
         using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
         {
             CullingFrameData cullingFrameData = frameData.Get<CullingFrameData>();
-            passData.matrixBuffer = cullingFrameData.CulledMatricesBuffer;
+            passData.cullingFrameData = cullingFrameData;
             passData.material = _material;
             passData.mesh = _mesh;
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-            builder.UseBuffer(passData.matrixBuffer);
+            builder.UseBuffer(passData.cullingFrameData.CulledMatricesBuffer);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture);
             builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));

@@ -1,5 +1,3 @@
-using System;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -31,14 +29,13 @@ public class CullingPass : ScriptableRenderPass
             }
         }
 
-        GraphicsBuffer matrixBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, 
-                                                    matrices.Length, sizeof(float)*16);
-        matrixBuffer.SetData(matrices);
-        matrixBuffer.SetCounterValue((uint) matrices.Length);
         CullingFrameData data = frameData.Create<CullingFrameData>();
+        GraphicsBuffer matrixBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, 
+            matrices.Length, sizeof(float)*16);
+        matrixBuffer.SetData(matrices);
         BufferHandle matrixBufferHandle = renderGraph.ImportBuffer(matrixBuffer);
         data.CulledMatricesBuffer = matrixBufferHandle;
-            
+        data.InstanceCount = matrices.Length;
         using (var builder = renderGraph.AddComputePass<PassData>(passName, out var passData))
         {
             builder.SetRenderFunc((PassData data, ComputeGraphContext context) => ExecutePass(data, context));
