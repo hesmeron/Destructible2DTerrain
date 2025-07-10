@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 class InstancedDrawPass : ScriptableRenderPass
 {
+    private static readonly int TransformationMatrices = Shader.PropertyToID("_TransformationMatrices");
     private Material _material;
     private Mesh _mesh;
 
@@ -26,6 +27,7 @@ class InstancedDrawPass : ScriptableRenderPass
         int shaderPass = data.material.FindPass("Unlit"); 
 
         MaterialPropertyBlock block =  context.renderGraphPool.GetTempMaterialPropertyBlock();
+        block.SetBuffer(TransformationMatrices, data.cullingFrameData.CulledMatricesBuffer);
         context.cmd.DrawMeshInstancedProcedural(data.mesh, 
                                                 0, data.material,
                                                 shaderPass,

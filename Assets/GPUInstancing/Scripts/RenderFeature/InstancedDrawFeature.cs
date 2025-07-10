@@ -4,6 +4,8 @@ using UnityEngine.Rendering.Universal;
 public class InstancedDrawFeature : ScriptableRendererFeature
 {
     [SerializeField] 
+    private ComputeShader cullingShader;    
+    [SerializeField] 
     private Material material;
     [SerializeField]
     private Mesh mesh;
@@ -14,7 +16,7 @@ public class InstancedDrawFeature : ScriptableRendererFeature
     /// <inheritdoc/>
     public override void Create()
     {
-        cullingPass = new CullingPass();
+        cullingPass = new CullingPass(cullingShader);
         cullingPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
         renderPass = new InstancedDrawPass(material, mesh);
         renderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;

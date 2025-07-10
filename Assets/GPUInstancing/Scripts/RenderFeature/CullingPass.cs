@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -5,18 +6,34 @@ using UnityEngine.Rendering.Universal;
 
 public class CullingPass : ScriptableRenderPass
 {
+    private static readonly int InMatrices = Shader.PropertyToID("IN_Matrices");
+    private static readonly int OutCulledMatrices = Shader.PropertyToID("OUT_CulledMatrices");
+    private ComputeShader _cullingShader;
     private class PassData
     {
-        
+        public ComputeShader CullingShader;
+        public BufferHandle MatricesToCullBuffer;        
+        public BufferHandle CulledMatricesBuffer;
+    }
+
+    public CullingPass(ComputeShader cullingShader)
+    {
+        _cullingShader = cullingShader;
     }
     
     static void ExecutePass(PassData data, ComputeGraphContext context)
     {
-
+        Debug.Log("Execute culling pass");
+        ComputeShader shader = data.CullingShader;
+        shader.SetBuffer(0, InMatrices, data.MatricesToCullBuffer);
+        shader.SetBuffer(0, OutCulledMatrices, data.CulledMatricesBuffer);
+        context.cmd.DispatchCompute(shader, 0, 8, 1, 1);
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
-    {
+    {        
+        
+        Debug.Log("Record culling pass");
         const string passName = "Culling Pass";
         Matrix4x4[] matrices = new Matrix4x4[100 * 100];
         
@@ -28,17 +45,34 @@ public class CullingPass : ScriptableRenderPass
                 matrices[x * 100 + z] = matrix;
             }
         }
-
-        CullingFrameData data = frameData.Create<CullingFrameData>();
-        GraphicsBuffer matrixBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, 
+        
+        GraphicsBuffer inputMatricesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, 
             matrices.Length, sizeof(float)*16);
-        matrixBuffer.SetData(matrices);
-        BufferHandle matrixBufferHandle = renderGraph.ImportBuffer(matrixBuffer);
-        data.CulledMatricesBuffer = matrixBufferHandle;
-        data.InstanceCount = matrices.Length;
+        inputMatricesBuffer.SetData(matrices);
+        inputMatricesBuffer.name = "InputMatrixBuffer";
+        ComputeBuffer outputCB = new ComputeBuffer(1024, sizeof(float)*16, ComputeBufferType.Append);
+        
+         GraphicsBuffer outputBuffer= new GraphicsBuffer(GraphicsBuffer.Target.Structured 
+                                                        | GraphicsBuffer.Target.IndirectArguments,
+                                                        //| GraphicsBuffer.Target.Append, 
+                                                    matrices.Length, sizeof(float)*16);
+         outputBuffer.name = "OutputMatrixBuffer";
+         
+         BufferHandle inputBufferHandle = renderGraph.ImportBuffer(inputMatricesBuffer);
+         BufferHandle outputBufferHandle = renderGraph.ImportBuffer(outputBuffer);
+         CullingFrameData cullingFrameData = frameData.Create<CullingFrameData>();
+         cullingFrameData.CulledMatricesBuffer = outputBufferHandle;
+         cullingFrameData.InstanceCount = 1;
+         
+        
         using (var builder = renderGraph.AddComputePass<PassData>(passName, out var passData))
         {
-            builder.SetRenderFunc((PassData data, ComputeGraphContext context) => ExecutePass(data, context));
+            passData.CullingShader = _cullingShader;
+            passData.MatricesToCullBuffer = inputBufferHandle;
+            passData.CulledMatricesBuffer = outputBufferHandle;
+            builder.UseBuffer(passData.MatricesToCullBuffer);
+            builder.UseBuffer(passData.CulledMatricesBuffer, AccessFlags.ReadWrite);
+            builder.SetRenderFunc((PassData passData, ComputeGraphContext context) => ExecutePass(passData, context));
         }
     }
 }

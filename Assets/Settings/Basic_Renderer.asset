@@ -65,5 +65,6 @@ MonoBehaviour:
   m_Name: InstancedDrawFeature
   m_EditorClassIdentifier: 
   m_Active: 1
+  cullingShader: {fileID: 7200000, guid: 2490f43f328860b4b847d840543eb682, type: 3}
   material: {fileID: 2100000, guid: 2850a774323b9c146b828d649de3fa2b, type: 2}
   mesh: {fileID: -2432090755550338912, guid: 3a46c3db616b2874faff8e63543f3d66, type: 3}
