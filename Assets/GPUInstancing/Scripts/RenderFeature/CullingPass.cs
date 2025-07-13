@@ -23,11 +23,14 @@ public class CullingPass : ScriptableRenderPass
     
     static void ExecutePass(PassData data, ComputeGraphContext context)
     {
+        
         Debug.Log("Execute culling pass");
         ComputeShader shader = data.CullingShader;
         shader.SetBuffer(0, InMatrices, data.MatricesToCullBuffer);
         shader.SetBuffer(0, OutCulledMatrices, data.CulledMatricesBuffer);
-        context.cmd.DispatchCompute(shader, 0, 8, 1, 1);
+        
+        context.cmd.DispatchCompute(shader, 0, 10000, 1, 1);
+        //context.cmd.CopyCounterValue();
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -50,19 +53,18 @@ public class CullingPass : ScriptableRenderPass
             matrices.Length, sizeof(float)*16);
         inputMatricesBuffer.SetData(matrices);
         inputMatricesBuffer.name = "InputMatrixBuffer";
-        ComputeBuffer outputCB = new ComputeBuffer(1024, sizeof(float)*16, ComputeBufferType.Append);
         
          GraphicsBuffer outputBuffer= new GraphicsBuffer(GraphicsBuffer.Target.Structured 
-                                                        | GraphicsBuffer.Target.IndirectArguments,
-                                                        //| GraphicsBuffer.Target.Append, 
-                                                    matrices.Length, sizeof(float)*16);
+                                                        | GraphicsBuffer.Target.Append, 
+                                                    matrices.Length, sizeof(int));
          outputBuffer.name = "OutputMatrixBuffer";
          
          BufferHandle inputBufferHandle = renderGraph.ImportBuffer(inputMatricesBuffer);
          BufferHandle outputBufferHandle = renderGraph.ImportBuffer(outputBuffer);
          CullingFrameData cullingFrameData = frameData.Create<CullingFrameData>();
          cullingFrameData.CulledMatricesBuffer = outputBufferHandle;
-         cullingFrameData.InstanceCount = 1;
+         cullingFrameData.AllMatricesBuffer = inputBufferHandle;
+         cullingFrameData.InstanceCount = matrices.Length;
          
         
         using (var builder = renderGraph.AddComputePass<PassData>(passName, out var passData))

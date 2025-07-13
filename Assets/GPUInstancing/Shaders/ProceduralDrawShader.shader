@@ -31,13 +31,15 @@ Shader "Unlit/ProceduralDrawShader"
             };
 
             StructuredBuffer<float4x4> _TransformationMatrices;
+            StructuredBuffer<int> _CulledMatrices;
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
             v2f vert (appdata v, uint instanceId: SV_InstanceID)
             {
                 v2f o;
-                float4 positionWS = mul(_TransformationMatrices[instanceId], float4(v.vertex.xyz, 1));
+                int index = _CulledMatrices[instanceId];
+                float4 positionWS = mul(_TransformationMatrices[index], float4(v.vertex.xyz, 1));
                 o.positionCS = mul(UNITY_MATRIX_VP, positionWS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
