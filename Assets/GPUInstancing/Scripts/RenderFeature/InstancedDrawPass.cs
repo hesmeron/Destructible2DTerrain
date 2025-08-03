@@ -26,16 +26,25 @@ class InstancedDrawPass : ScriptableRenderPass
 
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
+        GraphicsBuffer counterCopyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+        GraphicsBuffer.CopyCount(data.cullingFrameData.CulledMatricesBuffer, counterCopyBuffer, 0);
+        uint[] counterValueArray = new uint[1];
+        counterCopyBuffer.GetData(counterValueArray);
+        Debug.Log("Buffer counter " + counterValueArray[0]);
+        int counterValue = (int) counterValueArray[0];
         int shaderPass = data.material.FindPass("Unlit");
 
-        MaterialPropertyBlock block = context.renderGraphPool.GetTempMaterialPropertyBlock();
-        block.SetBuffer(TransformationMatrices, data.cullingFrameData.AllMatricesBuffer);
-        block.SetBuffer(CulledMatrices, data.cullingFrameData.CulledMatricesBuffer);
-        context.cmd.DrawMeshInstancedProcedural(data.mesh, 
-                                                0, data.material,
-                                                shaderPass,
-                                                data.cullingFrameData.InstanceCount,
-                                                block );
+        if (counterValue > 0)
+        {
+            MaterialPropertyBlock block = context.renderGraphPool.GetTempMaterialPropertyBlock();
+            block.SetBuffer(TransformationMatrices, data.cullingFrameData.AllMatricesBuffer);
+            block.SetBuffer(CulledMatrices, data.cullingFrameData.CulledMatricesBuffer);
+            context.cmd.DrawMeshInstancedProcedural(data.mesh, 
+                0, data.material,
+                shaderPass,
+                (int) counterValueArray[0],
+                block );
+        }
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

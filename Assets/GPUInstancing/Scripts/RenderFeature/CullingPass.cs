@@ -1,4 +1,4 @@
-using System;
+//using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -9,6 +9,7 @@ public class CullingPass : ScriptableRenderPass
     private static readonly int InMatrices = Shader.PropertyToID("IN_Matrices");
     private static readonly int OutCulledMatrices = Shader.PropertyToID("OUT_CulledMatrices");
     private ComputeShader _cullingShader;
+    private ComputeShader _resetCounterShader;
     private class PassData
     {
         public ComputeShader CullingShader;
@@ -23,19 +24,23 @@ public class CullingPass : ScriptableRenderPass
     
     static void ExecutePass(PassData data, ComputeGraphContext context)
     {
-        
         Debug.Log("Execute culling pass");
+        context.cmd.SetBufferCounterValue(data.CulledMatricesBuffer, 0);
         ComputeShader shader = data.CullingShader;
         shader.SetBuffer(0, InMatrices, data.MatricesToCullBuffer);
         shader.SetBuffer(0, OutCulledMatrices, data.CulledMatricesBuffer);
         
+        //context.cmd.d
         context.cmd.DispatchCompute(shader, 0, 10000, 1, 1);
-        //context.cmd.CopyCounterValue();
+        GraphicsBuffer counterCopyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+        GraphicsBuffer.CopyCount(data.CulledMatricesBuffer, counterCopyBuffer, 0);
+        uint[] counterValueArray = new uint[1];
+        counterCopyBuffer.GetData(counterValueArray);
+        Debug.Log("Buffer counter A" + counterValueArray[0]);
     }
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {        
-        
         Debug.Log("Record culling pass");
         const string passName = "Culling Pass";
         Matrix4x4[] matrices = new Matrix4x4[100 * 100];
@@ -53,20 +58,16 @@ public class CullingPass : ScriptableRenderPass
             matrices.Length, sizeof(float)*16);
         inputMatricesBuffer.SetData(matrices);
         inputMatricesBuffer.name = "InputMatrixBuffer";
-        
-         GraphicsBuffer outputBuffer= new GraphicsBuffer(GraphicsBuffer.Target.Structured 
-                                                        | GraphicsBuffer.Target.Append, 
-                                                    matrices.Length, sizeof(int));
-         outputBuffer.name = "OutputMatrixBuffer";
-         
-         BufferHandle inputBufferHandle = renderGraph.ImportBuffer(inputMatricesBuffer);
-         BufferHandle outputBufferHandle = renderGraph.ImportBuffer(outputBuffer);
-         CullingFrameData cullingFrameData = frameData.Create<CullingFrameData>();
-         cullingFrameData.CulledMatricesBuffer = outputBufferHandle;
-         cullingFrameData.AllMatricesBuffer = inputBufferHandle;
-         cullingFrameData.InstanceCount = matrices.Length;
-         
-        
+
+        GraphicsBuffer outputBuffer = InstancedDrawSystem.GetMatrixBuffer();
+        BufferHandle inputBufferHandle = renderGraph.ImportBuffer(inputMatricesBuffer);
+        BufferHandle outputBufferHandle = renderGraph.ImportBuffer(outputBuffer);
+        CullingFrameData cullingFrameData = frameData.Create<CullingFrameData>();
+        cullingFrameData.CulledMatricesBuffer = outputBufferHandle;
+        cullingFrameData.AllMatricesBuffer = inputBufferHandle;
+        cullingFrameData.InstanceCount = 10000;//matrices.Length;
+
+
         using (var builder = renderGraph.AddComputePass<PassData>(passName, out var passData))
         {
             passData.CullingShader = _cullingShader;
