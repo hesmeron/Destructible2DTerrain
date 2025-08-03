@@ -41,6 +41,14 @@ public class CullingPass : ScriptableRenderPass
     
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {        
+        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+        Vector4[] planeVectors = new Vector4[6];
+        for (int i = 0; i < 6; i++)
+        {
+            Plane p = frustumPlanes[i];
+            planeVectors[i] = new Vector4(p.normal.x, p.normal.y, p.normal.z, p.distance);
+        }
+        
         Debug.Log("Record culling pass");
         const string passName = "Culling Pass";
         Matrix4x4[] matrices = new Matrix4x4[100 * 100];
