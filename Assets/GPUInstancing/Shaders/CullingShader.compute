@@ -1,7 +1,9 @@
 #pragma kernel CSMain
 
 //All matrices to be culled
+float IN_Radius;
 StructuredBuffer<float4x4> IN_Matrices;
+StructuredBuffer<float4> IN_FrustumPlanes; 
 //Matrices of objects within frustum to get drawn
 AppendStructuredBuffer<int> OUT_CulledMatrices;
 
@@ -11,5 +13,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     //for now we are simply effectively copying on e buffer to another
     float4x4 transformationMatrix = IN_Matrices[id.x];
+
+    float3 center = mul(transformationMatrix, float4(0, 0, 0, 1));
+    
+    // Sphere-Frustum Test
+    for (int i = 0; i < 6; i++)
+    {
+        float4 plane = IN_FrustumPlanes[i];
+        float d = dot(plane.xyz, center) + plane.w;
+        if (d <= -IN_Radius)
+            return; // outside
+    }
+
     OUT_CulledMatrices.Append(id.x);
 }

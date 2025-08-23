@@ -7,6 +7,7 @@ class InstancedDrawPass : ScriptableRenderPass
 {
     private static readonly int TransformationMatrices = Shader.PropertyToID("_TransformationMatrices");
     private static readonly int CulledMatrices = Shader.PropertyToID("_CulledMatrices");
+    private static GraphicsBuffer _counterCopyBuffer;
     
     private Material _material;
     private Mesh _mesh;
@@ -26,11 +27,11 @@ class InstancedDrawPass : ScriptableRenderPass
 
     static void ExecutePass(PassData data, RasterGraphContext context)
     {
-        GraphicsBuffer counterCopyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
-        GraphicsBuffer.CopyCount(data.cullingFrameData.CulledMatricesBuffer, counterCopyBuffer, 0);
+        _counterCopyBuffer= new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+        GraphicsBuffer.CopyCount(data.cullingFrameData.CulledMatricesBuffer, _counterCopyBuffer, 0);
         uint[] counterValueArray = new uint[1];
-        counterCopyBuffer.GetData(counterValueArray);
-        Debug.Log("Buffer counter " + counterValueArray[0]);
+        _counterCopyBuffer.GetData(counterValueArray);
+       Debug.Log("Buffer counter " + counterValueArray[0]);
         int counterValue = (int) counterValueArray[0];
         int shaderPass = data.material.FindPass("Unlit");
 
