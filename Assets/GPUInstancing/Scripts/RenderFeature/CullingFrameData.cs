@@ -5,11 +5,10 @@ public class CullingFrameData : ContextItem
 {
     public BufferHandle CulledMatricesBuffer;
     public BufferHandle AllMatricesBuffer;
-    public int InstanceCount;
+    public int Count;
     
     public override void Reset()
     {
         CulledMatricesBuffer = BufferHandle.nullHandle;
-        InstanceCount = 0;
     }
 }
